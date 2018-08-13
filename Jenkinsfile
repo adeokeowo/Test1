@@ -3,9 +3,11 @@
 node('fmw_slave1') {
     try {
         stage('build') {
-        // Checkout the app at the given commit sha from the webhook
-        checkout scm
+        // Checkout the app at the given commit
 		sh "echo 'Checked out Jenkinsfile'"
+        checkout scm
+		sh "echo 'Validate Test1 with maven'"
+		mvn validate
         // Install dependencies, create a new .env file and generate a new key, just for testing
         // sh "composer install"
         // sh "cp .env.example .env"
