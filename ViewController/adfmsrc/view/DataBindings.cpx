@@ -1,3 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Application xmlns="http://xmlns.oracle.com/adfm/application" version="12.2.1.9.14" id="DataBindings"
-             SeparateXMLFiles="false" Package="view" ClientType="Generic"></Application>
+             SeparateXMLFiles="false" Package="view" ClientType="Generic">
+  <pageMap>
+    <page path="/WEB-INF/templates/tsttemplate01.jspx" usageId="view_tsttemplate01PageDef"/>
+  </pageMap>
+  <pageDefinitionUsages>
+    <page id="view_tsttemplate01PageDef" path="templates.tsttemplate01PageDef"/>
+  </pageDefinitionUsages>
+</Application>
