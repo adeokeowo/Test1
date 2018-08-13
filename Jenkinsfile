@@ -12,7 +12,8 @@ node('fmw_slave1') {
         env.PATH="${env.JAVA_HOME}/bin:${env.PATH}"
         sh 'java -version'
 		
-		withEnv( ["PATH+MAVEN=${tool maven}/bin"] ) {
+		def mvn_version = 'M3'
+		withEnv( ["PATH+MAVEN=${tool mvn_version}/bin"] ) {
 		 sh "mvn validate"
 		}
 		
