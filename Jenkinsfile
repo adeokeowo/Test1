@@ -1,11 +1,11 @@
 #!/usr/bin/env groovy
 
-node('master') {
+node('fmw_slave1') {
     try {
         stage('build') {
         // Checkout the app at the given commit sha from the webhook
         checkout scm
-		sh "echo 'Checked out Jenkinsfike'"
+		sh "echo 'Checked out Jenkinsfile'"
         // Install dependencies, create a new .env file and generate a new key, just for testing
         // sh "composer install"
         // sh "cp .env.example .env"
