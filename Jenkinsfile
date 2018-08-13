@@ -7,7 +7,7 @@ node('fmw_slave1') {
 		sh "echo 'Checked out Jenkinsfile'"
         checkout scm
 		sh "echo 'Validate Test1 with maven'"
-		mvn validate
+		mvn clean install
         // Install dependencies, create a new .env file and generate a new key, just for testing
         // sh "composer install"
         // sh "cp .env.example .env"
