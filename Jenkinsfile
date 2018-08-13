@@ -1,15 +1,21 @@
 #!/usr/bin/env groovy
 
 node('fmw_slave1') {
-    try {
-        stage('build') {
+ tools {
+    maven 'M3'
+  }
+ try {
+  stage('build') {
         // Checkout the app at the given commit
 		sh "echo 'Checked out Jenkinsfile'"
         checkout scm
 		sh "echo 'Validate Test1 with maven'"
 		
-		def mvn_version = 'M3'
-		 withEnv( ["PATH+MAVEN=${tool mvn_version}/bin"] ) {
+		env.JAVA_HOME="${tool 'jdk-8u45'}"
+        env.PATH="${env.JAVA_HOME}/bin:${env.PATH}"
+        sh 'java -version'
+		
+		withEnv( ["PATH+MAVEN=${tool maven}/bin"] ) {
 		 sh "mvn validate"
 		}
 		
@@ -37,7 +43,7 @@ node('fmw_slave1') {
         throw error
     } finally {
         // Any cleanup operations needed, whether we hit an error or not
-    }
+ }
 
 }
 		
