@@ -12,9 +12,9 @@ node('fmw_slave1') {
         env.PATH="${env.JAVA_HOME}/bin:${env.PATH}"
         sh 'java -version'
 		
-		//withEnv( ["PATH+MAVEN=${tool maven}/bin"] ) {
-		// sh "mvn validate"
-		//}
+		withEnv( ["PATH+MAVEN=${tool maven}/bin"] ) {
+		 sh "mvn validate"
+		}
 		
 		
         // Install dependencies, create a new .env file and generate a new key, just for testing
