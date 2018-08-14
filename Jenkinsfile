@@ -1,46 +1,74 @@
-#!/usr/bin/env groovy
 
-node('fmw_slave1') {
- try {
-  stage('build') {
-        // Checkout the app at the given commit
-		sh "echo 'Checked out Jenkinsfile'"
+def CONTAINER_NAME="jenkins-pipeline"
+def CONTAINER_TAG="latest"
+def DOCKER_HUB_USER="oracle"
+def HTTP_PORT="8090"
+
+node {
+
+    stage('Initialize'){
+        def dockerHome = tool 'myDocker'
+        def mavenHome  = tool 'myMaven'
+        env.PATH = "${dockerHome}/bin:${mavenHome}/bin:${env.PATH}"
+    }
+
+    stage('Checkout') {
         checkout scm
-		sh "echo 'Validate Test1 with maven'"
-		
-		env.JAVA_HOME="${tool 'jdk-8u45'}"
-        env.PATH="${env.JAVA_HOME}/bin:${env.PATH}"
-        sh 'java -version'
-		
-		def mvn_version = 'M3'
-		withEnv( ["PATH+MAVEN=${tool mvn_version}/bin"] ) {
-		 sh "mvn validate"
-		}
-		
-		
-        // Install dependencies, create a new .env file and generate a new key, just for testing
-        // sh "composer install"
-        // sh "cp .env.example .env"
-        // sh "php artisan key:generate"
-		// Run any static asset building, if needed
-		// sh "npm install && gulp --production"
-        }
+    }
 
-        stage('test') {
-         // Run any testing suites
-		 //sh "./vendor/bin/phpunit"
-        }
+    stage('Build'){
+        sh "mvn clean install"
+    }
 
-        stage('deploy') {
-         // If we had ansible installed on the server, setup to run an ansible playbook
-         // sh "ansible-playbook -i ./ansible/hosts ./ansible/deploy.yml"
-         //sh "echo 'WE ARE DEPLOYING'"
+    stage('Sonar'){
+        try {
+            sh "mvn sonar:sonar"
+        } catch(error){
+            echo "The sonar server could not be reached ${error}"
         }
-    } catch(error) {
-        throw error
-    } finally {
-        // Any cleanup operations needed, whether we hit an error or not
- }
+     }
+
+    stage("Image Prune"){
+        imagePrune(CONTAINER_NAME)
+    }
+
+    stage('Image Build'){
+        imageBuild(CONTAINER_NAME, CONTAINER_TAG)
+    }
+
+    stage('Push to Docker Registry'){
+        withCredentials([usernamePassword(credentialsId: 'dockerHubAccount', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            pushToImage(CONTAINER_NAME, CONTAINER_TAG, USERNAME, PASSWORD)
+        }
+    }
+
+    stage('Run App'){
+        runApp(CONTAINER_NAME, CONTAINER_TAG, DOCKER_HUB_USER, HTTP_PORT)
+    }
 
 }
-		
+
+def imagePrune(containerName){
+    try {
+        sh "docker image prune -f"
+        sh "docker stop $containerName"
+    } catch(error){}
+}
+
+def imageBuild(containerName, tag){
+    sh "docker build -t $containerName:$tag  -t $containerName --pull --no-cache ."
+    echo "Image build complete"
+}
+
+def pushToImage(containerName, tag, dockerUser, dockerPassword){
+    sh "docker login -u $dockerUser -p $dockerPassword"
+    sh "docker tag $containerName:$tag $dockerUser/$containerName:$tag"
+    sh "docker push $dockerUser/$containerName:$tag"
+    echo "Image push complete"
+}
+
+def runApp(containerName, tag, dockerHubUser, httpPort){
+    sh "docker pull $dockerHubUser/$containerName"
+    sh "docker run -d --rm -p $httpPort:$httpPort --name $containerName $dockerHubUser/$containerName:$tag"
+    echo "Application started on port: ${httpPort} (http)"
+}
