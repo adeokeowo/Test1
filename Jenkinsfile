@@ -4,7 +4,7 @@ def CONTAINER_TAG="latest"
 def DOCKER_HUB_USER="oracle"
 def HTTP_PORT="8090"
 
-node {
+node('fmw_slave1') {
 
     stage('Initialize'){
         def dockerHome = tool 'myDocker'
